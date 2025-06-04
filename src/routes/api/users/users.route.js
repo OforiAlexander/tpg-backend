@@ -3,12 +3,12 @@ const express = require('express');
 const router = express.Router();
 
 // Import middleware
-const {
-  authenticate,
-  requireRole,
-  requirePermission,
+const { 
+  authenticate, 
+  requireRole, 
+  requirePermission, 
   requireOwnership,
-  authRateLimit
+  authRateLimit 
 } = require('../../../middleware/auth');
 const { apiRateLimit } = require('../../../middleware/security');
 const { auditUserAction } = require('../../../middleware/audit');
@@ -27,7 +27,7 @@ router.use(apiRateLimit);
  */
 
 // GET /api/users - List users with filtering and pagination (Admin+)
-router.get('/',
+router.get('/', 
   requirePermission('users.view'),
   auditUserAction('list'),
   usersController.getUsers
