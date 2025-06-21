@@ -1,0 +1,161 @@
+<!-- src/mail/templates/account-locked.hbs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Security Alert - Account Locked</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #dc2626;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .content h2 {
+            color: #dc2626;
+            margin-bottom: 20px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #2563eb;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .button:hover {
+            background-color: #1d4ed8;
+        }
+        .alert-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 6px 6px 0;
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 20px 30px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+            border-radius: 0 0 8px 8px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .urgent {
+            background-color: #fee2e2;
+            border: 2px solid #dc2626;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .steps {
+            background-color: #f0f9ff;
+            border-left: 4px solid #2563eb;
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 Security Alert</h1>
+            <p>Your Account Has Been Locked</p>
+        </div>
+        
+        <div class="content">
+            <h2>Hello {{user.username}},</h2>
+            
+            <div class="urgent">
+                <h3>⚠️ Your TPG Portal account has been temporarily locked</h3>
+                <p><strong>This is an automated security measure to protect your account.</strong></p>
+            </div>
+            
+            <div class="alert-box">
+                <h3>Lock Details:</h3>
+                <ul>
+                    <li><strong>Account:</strong> {{user.email}}</li>
+                    <li><strong>Reason:</strong> {{reason}}</li>
+                    <li><strong>Locked At:</strong> {{timestamp}}</li>
+                    <li><strong>Unlock Time:</strong> {{unlockTime}}</li>
+                </ul>
+            </div>
+            
+            <h3>Why was my account locked?</h3>
+            <p>Your account has been automatically locked due to: <strong>{{reason}}</strong></p>
+            <p>This security measure helps protect your TPG license information, pharmacy details, and other sensitive data from unauthorized access.</p>
+            
+            <div class="steps">
+                <h3>🔓 How to Regain Access:</h3>
+                <ol>
+                    <li><strong>Wait for Automatic Unlock:</strong> Your account will automatically unlock at {{unlockTime}}</li>
+                    <li><strong>Use Secure Connection:</strong> Always ensure you're accessing the portal from the official TPG website</li>
+                    <li><strong>Reset Password (if needed):</strong> If you've forgotten your password, use the password reset feature</li>
+                    <li><strong>Contact Support:</strong> If you need immediate access, contact our support team</li>
+                </ol>
+            </div>
+            
+            <h3>🛡️ Security Recommendations:</h3>
+            <ul>
+                <li>Use a strong, unique password for your TPG account</li>
+                <li>Never share your login credentials with anyone</li>
+                <li>Log out completely when using shared computers</li>
+                <li>Report any suspicious activity immediately</li>
+                <li>Keep your browser and security software updated</li>
+            </ul>
+            
+            <h3>Didn't Try to Access Your Account?</h3>
+            <p>If you didn't attempt to access your account recently, this could indicate someone else is trying to access your account. Please:</p>
+            <ul>
+                <li>Change your password immediately after the lock expires</li>
+                <li>Review your account activity</li>
+                <li>Contact support if you notice anything suspicious</li>
+            </ul>
+            
+            <div style="text-align: center;">
+                <a href="{{supportUrl}}" class="button">Contact Support</a>
+            </div>
+            
+            <h3>Need Immediate Access?</h3>
+            <p>If you need immediate access to your account for urgent TPG-related matters, please contact our support team at <a href="mailto:{{supportEmail}}">{{supportEmail}}</a> with your license number and verification details.</p>
+        </div>
+        
+        <div class="footer">
+            <p>This security alert was sent to {{user.email}} on {{timestamp}}.</p>
+            <p>This is an automated security notification from {{companyName}}.</p>
+            <p>&copy; {{year}} {{companyName}}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

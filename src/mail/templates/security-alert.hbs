@@ -1,0 +1,243 @@
+<!-- src/mail/templates/security-alert.hbs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Alert - {{alertMessage}}</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #f59e0b;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .content h2 {
+            color: #f59e0b;
+            margin-bottom: 20px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #dc2626;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .button.secondary {
+            background-color: #2563eb;
+        }
+        .button:hover {
+            opacity: 0.9;
+        }
+        .alert-box {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 6px 6px 0;
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 20px 30px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+            border-radius: 0 0 8px 8px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .critical {
+            background-color: #fee2e2;
+            border: 2px solid #dc2626;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .actions {
+            background-color: #f0f9ff;
+            border-left: 4px solid #2563eb;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .details-table th,
+        .details-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .details-table th {
+            background-color: #f8fafc;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔔 Security Alert</h1>
+            <p>{{alertMessage}}</p>
+        </div>
+        
+        <div class="content">
+            <h2>Hello {{user.username}},</h2>
+            
+            <div class="critical">
+                <h3>⚠️ Security Event Detected</h3>
+                <p><strong>{{alertMessage}}</strong></p>
+                <p>Detected at: {{timestamp}}</p>
+            </div>
+            
+            <p>We've detected unusual activity on your TPG State Portal account that requires your attention. This alert helps protect your pharmacy license information and sensitive data.</p>
+            
+            <div class="alert-box">
+                <h3>Event Details:</h3>
+                {{#if details}}
+                <table class="details-table">
+                    {{#if details.ipAddress}}
+                    <tr>
+                        <th>IP Address:</th>
+                        <td>{{details.ipAddress}}</td>
+                    </tr>
+                    {{/if}}
+                    {{#if details.location}}
+                    <tr>
+                        <th>Location:</th>
+                        <td>{{details.location}}</td>
+                    </tr>
+                    {{/if}}
+                    {{#if details.device}}
+                    <tr>
+                        <th>Device:</th>
+                        <td>{{details.device}}</td>
+                    </tr>
+                    {{/if}}
+                    {{#if details.browser}}
+                    <tr>
+                        <th>Browser:</th>
+                        <td>{{details.browser}}</td>
+                    </tr>
+                    {{/if}}
+                    {{#if details.attemptCount}}
+                    <tr>
+                        <th>Attempt Count:</th>
+                        <td>{{details.attemptCount}}</td>
+                    </tr>
+                    {{/if}}
+                    {{#if details.timeWindow}}
+                    <tr>
+                        <th>Time Window:</th>
+                        <td>{{details.timeWindow}}</td>
+                    </tr>
+                    {{/if}}
+                </table>
+                {{else}}
+                <p>Event type: {{alertType}}</p>
+                {{/if}}
+            </div>
+            
+            {{#if (eq alertType "login_from_new_device")}}
+            <h3>New Device Login Detected</h3>
+            <p>Someone (hopefully you) just signed into your TPG account from a device we haven't seen before. If this was you, you can ignore this email.</p>
+            {{/if}}
+            
+            {{#if (eq alertType "login_from_new_location")}}
+            <h3>Unusual Location Login</h3>
+            <p>We detected a login from a location that's different from your usual sign-in pattern. If you're traveling or using a VPN, this might be expected.</p>
+            {{/if}}
+            
+            {{#if (eq alertType "multiple_failed_logins")}}
+            <h3>Multiple Failed Login Attempts</h3>
+            <p>Someone has made multiple unsuccessful attempts to access your account. Your account remains secure, but please verify that you're using the correct password.</p>
+            {{/if}}
+            
+            {{#if (eq alertType "password_change_attempt")}}
+            <h3>Unauthorized Password Change Attempt</h3>
+            <p>Someone attempted to change your password without proper authorization. Your current password remains unchanged and secure.</p>
+            {{/if}}
+            
+            <div class="actions">
+                <h3>🛡️ Immediate Actions Required:</h3>
+                {{#if (eq alertType "multiple_failed_logins")}}
+                <ol>
+                    <li>If you were trying to log in, reset your password using the link below</li>
+                    <li>If you weren't trying to log in, your account may be under attack</li>
+                    <li>Consider enabling two-factor authentication</li>
+                    <li>Review your account activity for any suspicious changes</li>
+                </ol>
+                {{else}}
+                <ol>
+                    <li>Review the event details above carefully</li>
+                    <li>If this activity was authorized by you, no action is needed</li>
+                    <li>If you don't recognize this activity, secure your account immediately</li>
+                    <li>Change your password if you suspect unauthorized access</li>
+                </ol>
+                {{/if}}
+            </div>
+            
+            <h3>Was This You?</h3>
+            <p><strong>If you recognize this activity:</strong> No further action is required. This is just a security notification to keep you informed.</p>
+            
+            <p><strong>If you don't recognize this activity:</strong> Please secure your account immediately:</p>
+            
+            <div style="text-align: center;">
+                <a href="{{changePasswordUrl}}" class="button">Change Password Now</a>
+                <a href="{{securityUrl}}" class="button secondary">Review Security Settings</a>
+            </div>
+            
+            <h3>🔒 Additional Security Steps:</h3>
+            <ul>
+                <li>Review your recent account activity and login history</li>
+                <li>Check that your contact information is up to date</li>
+                <li>Consider enabling two-factor authentication for extra security</li>
+                <li>Log out of all devices and sign back in with a new password</li>
+                <li>Report any suspicious pharmacy or license-related changes</li>
+            </ul>
+            
+            <h3>Need Help?</h3>
+            <p>If you're concerned about your account security or need assistance, please contact our support team immediately at <a href="mailto:{{supportEmail}}">{{supportEmail}}</a>.</p>
+            
+            <p><strong>Reference ID:</strong> TPG-SEC-{{timestamp}}</p>
+        </div>
+        
+        <div class="footer">
+            <p>This security alert was sent to {{user.email}} on {{timestamp}}.</p>
+            <p>This is an automated security notification. Please do not reply to this email.</p>
+            <p>&copy; {{year}} {{companyName}}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

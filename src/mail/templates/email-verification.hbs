@@ -1,0 +1,186 @@
+<!-- src/mail/templates/email-verification.hbs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email Address</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #2563eb;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .content h2 {
+            color: #2563eb;
+            margin-bottom: 20px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #16a34a;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .button:hover {
+            background-color: #15803d;
+        }
+        .info-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #2563eb;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 20px 30px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+            border-radius: 0 0 8px 8px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .warning {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        .verification-code {
+            background-color: #f8fafc;
+            border: 2px dashed #6b7280;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📧 Email Verification</h1>
+            <p>Verify your email address to complete your account setup</p>
+        </div>
+        
+        <div class="content">
+            <h2>Hello {{user.username}},</h2>
+            
+            <p>Thank you for creating your TPG State Portal account. To ensure the security of your account and complete the setup process, please verify your email address.</p>
+            
+            <div class="info-box">
+                <h3>Why Verify Your Email?</h3>
+                <ul>
+                    <li>Secure your account and prevent unauthorized access</li>
+                    <li>Enable password reset functionality</li>
+                    <li>Receive important notifications about your pharmacy license</li>
+                    <li>Get updates on CPD points and compliance requirements</li>
+                    <li>Ensure you receive critical system announcements</li>
+                </ul>
+            </div>
+            
+            <h3>Verification Required</h3>
+            <p>Click the button below to verify your email address and activate your account:</p>
+            
+            <div style="text-align: center;">
+                <a href="{{verificationUrl}}" class="button">Verify Email Address</a>
+            </div>
+            
+            <div class="warning">
+                <h3>⏰ Important:</h3>
+                <ul>
+                    <li>This verification link will expire in <strong>24 hours</strong></li>
+                    <li>You must verify your email to access all account features</li>
+                    <li>Some account functions may be limited until verification is complete</li>
+                </ul>
+            </div>
+            
+            <h3>Can't Click the Button?</h3>
+            <p>If you're having trouble with the button above, copy and paste this link into your web browser:</p>
+            <div class="verification-code">
+                {{verificationUrl}}
+            </div>
+            
+            <h3>Alternative Verification</h3>
+            <p>If the link doesn't work, you can also enter this verification code manually on the verification page:</p>
+            <div class="verification-code">
+                {{verificationToken}}
+            </div>
+            
+            <h3>Account Information</h3>
+            <p>Here are your account details for reference:</p>
+            <ul>
+                <li><strong>Email:</strong> {{user.email}}</li>
+                <li><strong>Username:</strong> {{user.username}}</li>
+                {{#if user.pharmacy_name}}
+                <li><strong>Pharmacy:</strong> {{user.pharmacy_name}}</li>
+                {{/if}}
+                {{#if user.tpg_license_number}}
+                <li><strong>TPG License:</strong> {{user.tpg_license_number}}</li>
+                {{/if}}
+            </ul>
+            
+            <h3>What's Next?</h3>
+            <p>After verifying your email, you'll be able to:</p>
+            <ul>
+                <li>Access your full account dashboard</li>
+                <li>Submit and track support tickets</li>
+                <li>Manage your pharmacy license information</li>
+                <li>Monitor CPD points and compliance status</li>
+                <li>Receive important notifications and updates</li>
+                <li>Reset your password if needed</li>
+            </ul>
+            
+            <h3>Didn't Request This?</h3>
+            <p>If you didn't create an account with TPG State Portal, please ignore this email. The account will remain unverified and inactive.</p>
+            
+            <p>However, if someone else is using your email address inappropriately, please contact our support team.</p>
+            
+            <h3>Need Help?</h3>
+            <p>If you're having trouble verifying your email or have questions about your account, please contact our support team at <a href="mailto:{{supportEmail}}">{{supportEmail}}</a>.</p>
+            
+            <p><strong>Support Reference:</strong> EMAIL-VERIFY-{{user.id}}-{{timestamp}}</p>
+        </div>
+        
+        <div class="footer">
+            <p>This email verification request was sent to {{user.email}} on {{timestamp}}.</p>
+            <p>If you didn't request this verification, please ignore this email.</p>
+            <p>&copy; {{year}} {{companyName}}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
