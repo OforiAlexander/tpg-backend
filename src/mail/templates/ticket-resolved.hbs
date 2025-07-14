@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Resolved - {{ticket.ticket_number}}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #374151;
+            margin: 0;
+            padding: 0;
+            background-color: #f9fafb;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #16a34a;
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 32px 24px;
+        }
+        .resolved-info {
+            background-color: #f0fdf4;
+            border-left: 3px solid #16a34a;
+            padding: 16px;
+            margin: 20px 0;
+        }
+        .resolved-info h3 {
+            margin: 0 0 8px 0;
+            color: #1f2937;
+            font-size: 16px;
+        }
+        .resolved-info p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .resolution-content {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 16px;
+            margin: 16px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .detail-item {
+            padding: 12px;
+            background-color: #f9fafb;
+            border-radius: 4px;
+        }
+        .detail-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .detail-value {
+            font-size: 14px;
+            color: #1f2937;
+            font-weight: 500;
+        }
+        .action-button {
+            display: inline-block;
+            background-color: #16a34a;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 16px 0;
+            text-align: center;
+        }
+        .feedback-section {
+            background-color: #fffbeb;
+            border: 1px solid #fed7aa;
+            border-radius: 4px;
+            padding: 16px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 16px 24px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        @media (max-width: 600px) {
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✅ Ticket Resolved</h1>
+            <p>{{ticket.ticket_number}}</p>
+        </div>
+        
+        <div class="content">
+            <div class="resolved-info">
+                <h3>{{ticket.subject}}</h3>
+                <p>Great news! Your support ticket has been resolved.</p>
+            </div>
+            
+            {{#if resolution.content}}
+            <div class="resolution-content">
+                <strong>Resolution:</strong><br>
+                {{resolution.content}}
+            </div>
+            {{/if}}
+            
+            <div class="details-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Resolved By</div>
+                    <div class="detail-value">{{resolvedBy.username}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Resolved</div>
+                    <div class="detail-value">{{timestamp}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Total Time</div>
+                    <div class="detail-value">{{resolution.totalTime}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Category</div>
+                    <div class="detail-value">{{ticket.category}}</div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin: 24px 0;">
+                <a href="{{ticketUrl}}" class="action-button">View Resolution</a>
+            </div>
+            
+            <div class="feedback-section">
+                <h3>How did we do?</h3>
+                <p>We'd love to hear about your experience. Your feedback helps us improve our support service.</p>
+                <p style="margin-top: 16px;">
+                    <a href="{{feedbackUrl}}" style="color: #d97706; text-decoration: none; font-weight: 500;">
+                        Share Feedback →
+                    </a>
+                </p>
+            </div>
+            
+            <p><strong>Need More Help?</strong> If this resolution doesn't fully address your issue, you can reopen this ticket or create a new one for additional assistance.</p>
+        </div>
+        
+        <div class="footer">
+            <p>TPG Support System • {{timestamp}}</p>
+        </div>
+    </div>
+</body>
+</html>

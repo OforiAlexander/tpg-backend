@@ -4,6 +4,7 @@ const Ticket = require('../../../models/Tickets');
 const User = require('../../../models/User');
 const logger = require('../../../config/logger');
 const { validateCommentCreate, validateCommentUpdate } = require('./comments.validation');
+const ticketNotificationService = require('../../../services/ticketNotificationService');
 
 class CommentsController {
   /**
@@ -213,8 +214,14 @@ class CommentsController {
         req.ip
       );
 
-      // TODO: Send notification emails to relevant parties
-      // await emailService.sendCommentNotification(ticket, createdComment);
+      const ticketWithUser = await Ticket.query()
+      .findById(ticketId)
+      .withGraphFetched('user');
+
+    await ticketNotificationService.notifyTicketComment(
+      ticketWithUser,
+      createdComment
+    );
 
       res.status(201).json({
         success: true,

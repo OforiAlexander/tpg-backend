@@ -10,6 +10,9 @@ class AuthService {
     this.jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
     this.jwtExpiresIn = process.env.JWT_EXPIRES_IN || '24h';
     this.jwtRefreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
+    
+    this.tokenBlacklist = new Set();
+    this.refreshTokens = new Map(); // Store active refresh tokens
 
     if (!this.jwtSecret || !this.jwtRefreshSecret) {
       throw new Error('JWT secrets are required. Please set JWT_SECRET and JWT_REFRESH_SECRET environment variables.');
@@ -43,14 +46,24 @@ class AuthService {
       id: user.id,
       email: user.email,
       type: 'refresh',
-      tokenId: crypto.randomBytes(16).toString('hex')
+      tokenId: crypto.randomBytes(16).toString('hex'),
+      iat: Math.floor(Date.now() / 1000)
     };
 
-    return jwt.sign(payload, this.jwtRefreshSecret, {
+    const token = jwt.sign(payload, this.jwtRefreshSecret, {
       expiresIn: this.jwtRefreshExpiresIn,
       issuer: 'tpg-portal',
       audience: 'tpg-users'
     });
+
+    this.refreshTokens.set(payload.tokenId, {
+      userId: user.id,
+      token,
+      createdAt: new Date(),
+      lastUsed: new Date()
+    });
+
+    return token;
   }
 
   /**
@@ -80,6 +93,10 @@ class AuthService {
    */
   verifyAccessToken(token) {
     try {
+      if (this.tokenBlacklist.has(token)) {
+        throw new Error('Token has been invalidated');
+      }
+
       const decoded = jwt.verify(token, this.jwtSecret, {
         issuer: 'tpg-portal',
         audience: 'tpg-users'
@@ -109,12 +126,18 @@ class AuthService {
         audience: 'tpg-users'
       });
 
-      const decodedRaw = jwt.decode(token, { complete: true });
-console.log('Decoded refresh token:', JSON.stringify(decodedRaw, null, 2));
-
       if (decoded.type !== 'refresh') {
         throw new Error('Invalid token type');
       }
+
+      // Check if refresh token exists in our store
+      const storedToken = this.refreshTokens.get(decoded.tokenId);
+      if (!storedToken || storedToken.token !== token) {
+        throw new Error('Refresh token not found or invalid');
+      }
+
+      // Update last used timestamp
+      storedToken.lastUsed = new Date();
 
       return decoded;
     } catch (error) {
@@ -280,15 +303,33 @@ console.log('Decoded refresh token:', JSON.stringify(decodedRaw, null, 2));
   /**
    * Logout user (invalidate tokens)
    */
-  async logout(userId, ip, userAgent) {
+  async logout(userId, refreshToken, ip, userAgent) {
     try {
       const user = await User.query().findById(userId);
+      
+      if (refreshToken) {
+        try {
+          const decoded = jwt.decode(refreshToken);
+          if (decoded && decoded.tokenId) {
+            // Remove refresh token from store
+            this.refreshTokens.delete(decoded.tokenId);
+          }
+        } catch (error) {
+          logger.warn('Error decoding refresh token during logout:', error);
+        }
+      }
+
+      // Invalidate all refresh tokens for this user (security measure)
+      for (const [tokenId, tokenData] of this.refreshTokens.entries()) {
+        if (tokenData.userId === userId) {
+          this.refreshTokens.delete(tokenId);
+        }
+      }
+
       if (user) {
         logger.security.logAuth('logout', user.email, ip, userAgent, true);
       }
 
-      // In a production system, you might want to maintain a blacklist of tokens
-      // For now, we'll just log the logout event
       return { success: true };
     } catch (error) {
       logger.error('Logout error:', error);
@@ -439,6 +480,8 @@ console.log('Decoded refresh token:', JSON.stringify(decodedRaw, null, 2));
       permissions: this.getRolePermissions(user.role)
     };
   }
+
+  
 
   /**
    * Get permissions for a role

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Status Update - {{ticket.ticket_number}}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #374151;
+            margin: 0;
+            padding: 0;
+            background-color: #f9fafb;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #d97706;
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 32px 24px;
+        }
+        .status-info {
+            background-color: #fffbeb;
+            border-left: 3px solid #d97706;
+            padding: 16px;
+            margin: 20px 0;
+        }
+        .status-info h3 {
+            margin: 0 0 8px 0;
+            color: #1f2937;
+            font-size: 16px;
+        }
+        .status-info p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .status-change {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 24px 0;
+            gap: 16px;
+        }
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status-open { background-color: #dbeafe; color: #1e40af; }
+        .status-in-progress { background-color: #fef3c7; color: #92400e; }
+        .status-resolved { background-color: #d1fae5; color: #065f46; }
+        .status-closed { background-color: #f3f4f6; color: #374151; }
+        .arrow {
+            font-size: 18px;
+            color: #6b7280;
+        }
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .detail-item {
+            padding: 12px;
+            background-color: #f9fafb;
+            border-radius: 4px;
+        }
+        .detail-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .detail-value {
+            font-size: 14px;
+            color: #1f2937;
+            font-weight: 500;
+        }
+        .action-button {
+            display: inline-block;
+            background-color: #d97706;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 16px 0;
+            text-align: center;
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 16px 24px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        @media (max-width: 600px) {
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+            .status-change {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Status Update</h1>
+            <p>{{ticket.ticket_number}}</p>
+        </div>
+        
+        <div class="content">
+            <div class="status-info">
+                <h3>{{ticket.subject}}</h3>
+                <p>The status of your ticket has been updated</p>
+            </div>
+            
+            <div class="status-change">
+                <span class="status-badge status-{{oldStatus}}">{{oldStatus}}</span>
+                <span class="arrow">→</span>
+                <span class="status-badge status-{{ticket.status}}">{{ticket.status}}</span>
+            </div>
+            
+            <div class="details-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Updated By</div>
+                    <div class="detail-value">{{updatedBy.username}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Updated</div>
+                    <div class="detail-value">{{timestamp}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Priority</div>
+                    <div class="detail-value">{{ticket.priority}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Category</div>
+                    <div class="detail-value">{{ticket.category}}</div>
+                </div>
+            </div>
+            
+            {{#if statusMessage}}
+            <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px; padding: 16px; margin: 16px 0;">
+                <strong>Update Note:</strong><br>
+                {{statusMessage}}
+            </div>
+            {{/if}}
+            
+            <div style="text-align: center; margin: 24px 0;">
+                <a href="{{ticketUrl}}" class="action-button">View Ticket</a>
+            </div>
+            
+            {{#if (eq ticket.status "resolved")}}
+            <p><strong>Next Steps:</strong> Please review the resolution and let us know if you need any additional assistance.</p>
+            {{else if (eq ticket.status "in-progress")}}
+            <p><strong>Status Update:</strong> Our team is actively working on your ticket. You'll receive updates as progress is made.</p>
+            {{else if (eq ticket.status "closed")}}
+            <p><strong>Ticket Closed:</strong> This ticket has been resolved and closed. If you need further assistance, please create a new ticket.</p>
+            {{/if}}
+        </div>
+        
+        <div class="footer">
+            <p>TPG Support System • {{timestamp}}</p>
+        </div>
+    </div>
+</body>
+</html>

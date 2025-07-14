@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Assigned - {{ticket.ticket_number}}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #374151;
+            margin: 0;
+            padding: 0;
+            background-color: #f9fafb;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #059669;
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 32px 24px;
+        }
+        .assignment-info {
+            background-color: #f0fdf4;
+            border-left: 3px solid #059669;
+            padding: 16px;
+            margin: 20px 0;
+        }
+        .assignment-info h3 {
+            margin: 0 0 8px 0;
+            color: #1f2937;
+            font-size: 16px;
+        }
+        .assignment-info p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .detail-item {
+            padding: 12px;
+            background-color: #f9fafb;
+            border-radius: 4px;
+        }
+        .detail-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .detail-value {
+            font-size: 14px;
+            color: #1f2937;
+            font-weight: 500;
+        }
+        .action-button {
+            display: inline-block;
+            background-color: #059669;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 16px 0;
+            text-align: center;
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 16px 24px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        @media (max-width: 600px) {
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👤 Ticket Assigned</h1>
+            <p>{{ticket.ticket_number}}</p>
+        </div>
+        
+        <div class="content">
+            <div class="assignment-info">
+                <h3>{{ticket.subject}}</h3>
+                <p>{{#if isUserNotification}}Your ticket has been assigned to {{assignedTo.username}}{{else}}This ticket has been assigned to you{{/if}}</p>
+            </div>
+            
+            <div class="details-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Assigned To</div>
+                    <div class="detail-value">{{assignedTo.username}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Assigned By</div>
+                    <div class="detail-value">{{assignedBy.username}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Priority</div>
+                    <div class="detail-value">{{ticket.priority}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Category</div>
+                    <div class="detail-value">{{ticket.category}}</div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin: 24px 0;">
+                <a href="{{ticketUrl}}" class="action-button">View Ticket</a>
+            </div>
+            
+            {{#if isUserNotification}}
+            <p><strong>What this means:</strong> {{assignedTo.username}} is now responsible for handling your ticket and will be in touch soon.</p>
+            {{else}}
+            <p><strong>Action Required:</strong> Please review this ticket and begin working on a resolution. The customer is expecting updates based on the priority level.</p>
+            {{/if}}
+        </div>
+        
+        <div class="footer">
+            <p>TPG Support System • {{timestamp}}</p>
+        </div>
+    </div>
+</body>
+</html>

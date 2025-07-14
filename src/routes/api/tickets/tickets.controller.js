@@ -11,6 +11,8 @@ const {
   calculateSatisfactionTrend
 } = require('../../../utils/SLAUtils');
 const bindMethods = require('../../../utils/bindMethods');
+const TicketNotificationService = require('../../../services/ticketNotificationService');
+const ticketNotificationService = require('../../../services/ticketNotificationService');
 
 class TicketsController {
   constructor() {
@@ -38,6 +40,7 @@ class TicketsController {
       'quickCloseTicket',
       'quickResolveTicket',
       'reopenTicket',
+      'resolveTicket',
       'getTicketTemplates',
       'createTicketTemplate',
       'getSystemHealth',
@@ -341,15 +344,17 @@ class TicketsController {
     selectUserFields: builder => builder.select('id', 'username', 'email')
   });
 
-      logger.security.logDataAccess(
+  
+  logger.security.logDataAccess(
         req.user.id,
         'create',
         'ticket',
         ticket.id,
         req.ip
-      );
-
-      await this.autoAssignTicket(createdTicket);
+        );
+        
+        await this.autoAssignTicket(createdTicket);
+        await ticketNotificationService.notifyTicketCreated(createdTicket);
 
       res.status(201).json({
         success: true,
@@ -532,6 +537,19 @@ class TicketsController {
         req.ip
       );
 
+      if (assigned_to) {
+        const assignedToUser = await User.query().findById(assigned_to);
+        const ticketWithUser = await Ticket.query()
+          .findById(id)
+          .withGraphFetched('user');
+  
+        await ticketNotificationService.notifyTicketAssigned(
+          ticketWithUser,
+          assignedToUser,
+          req.user
+        );
+      }
+
       res.json({
         success: true,
         message: assigned_to ? 'Ticket assigned successfully' : 'Ticket unassigned successfully',
@@ -599,6 +617,8 @@ class TicketsController {
         }
       }
 
+      const oldStatus = ticket.status;
+
       const updatedTicket = await ticket.$query().patchAndFetch(updates);
 
       let statusMessage = `Status changed from ${ticket.status} to ${status}`;
@@ -620,6 +640,17 @@ class TicketsController {
         id,
         req.ip
       );
+
+      const ticketWithUser = await Ticket.query()
+      .findById(id)
+      .withGraphFetched('user');
+
+    await ticketNotificationService.notifyTicketStatusChanged(
+      ticketWithUser,
+      oldStatus,
+      req.user,
+      resolution_notes || req.body.statusMessage || null
+    );
 
       res.json({
         success: true,
@@ -717,6 +748,73 @@ class TicketsController {
       res.status(500).json({
         error: 'Ticket deletion failed',
         message: 'An error occurred while deleting the ticket'
+      });
+    }
+  }
+
+  async resolveTicket(req, res) {
+    try {
+      const { id } = req.params;
+      const { resolution_notes = 'Ticket has been resolved' } = req.body;
+  
+      const ticket = await Ticket.query().findById(id);
+      if (!ticket) {
+        return res.status(404).json({
+          error: 'Ticket not found',
+          message: 'The requested ticket does not exist'
+        });
+      }
+  
+      // Check if already resolved
+      if (ticket.status === 'resolved') {
+        return res.status(400).json({
+          error: 'Already resolved',
+          message: 'This ticket is already resolved'
+        });
+      }
+  
+      // Update to resolved status
+      const updatedTicket = await ticket.$query().patchAndFetch({
+        status: 'resolved',
+        resolved_at: new Date().toISOString(),
+        resolution_notes
+      });
+  
+      // Create resolution comment
+      await TicketComment.query().insert({
+        ticket_id: id,
+        user_id: req.user.id,
+        content: `Ticket resolved. ${resolution_notes}`,
+        is_internal: false
+      });
+  
+      // Send notifications
+      const ticketWithUser = await Ticket.query()
+        .findById(id)
+        .withGraphFetched('user');
+  
+      const resolution = {
+        content: resolution_notes,
+        resolvedAt: new Date()
+      };
+  
+      await ticketNotificationService.notifyTicketResolved(
+        ticketWithUser,
+        resolution,
+        req.user
+      );
+  
+      res.json({
+        success: true,
+        message: 'Ticket resolved successfully',
+        ticket: updatedTicket
+      });
+  
+    } catch (error) {
+      logger.error('Resolve ticket error:', error);
+      res.status(500).json({
+        error: 'Resolution failed',
+        message: 'An error occurred while resolving the ticket'
       });
     }
   }

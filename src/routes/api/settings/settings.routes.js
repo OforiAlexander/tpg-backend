@@ -1,224 +1,132 @@
-// src/routes/api/settings/settings.routes.js - TPG System Settings Routes
+// src/routes/api/settings/settings.routes.js - TPG System Settings Routes (Updated)
 const express = require('express');
 const router = express.Router();
-const { authenticate, authorize } = require('../../../middleware/auth');
 
-// Apply authentication to all settings routes
+// Import middleware
+const { 
+  authenticate, 
+  requireRole, 
+  requirePermission,
+  authRateLimit 
+} = require('../../../middleware/auth');
+const { apiRateLimit } = require('../../../middleware/security');
+const { auditUserAction } = require('../../../middleware/audit');
+
+// Import controller
+const settingsController = require('./settings.controller');
+
+// Apply authentication to all routes
 router.use(authenticate);
 
-// Get system settings
-router.get('/', 
-  authorize(['system.settings.view']), 
+// Apply rate limiting
+router.use(apiRateLimit);
+
+/**
+ * Public settings routes (minimal permissions required)
+ */
+
+// GET /api/settings/public - Get public settings (no special permissions needed)
+router.get('/public',
+  auditUserAction('view_public_settings'),
   async (req, res) => {
     try {
-      // Mock system settings data
-      const settings = {
-        system: {
-          site_name: 'TPG State Portal',
-          site_description: 'Teacher Portal Ghana Support System',
-          maintenance_mode: false,
-          registration_enabled: true,
-          email_verification_required: true,
-          default_user_role: 'user',
-          session_timeout: 60, // minutes
-          max_file_upload_size: 10, // MB
-          allowed_file_types: ['.jpg', '.jpeg', '.png', '.pdf', '.doc', '.docx', '.txt']
-        },
-        email: {
-          smtp_enabled: true,
-          smtp_host: 'smtp.gmail.com',
-          smtp_port: 587,
-          smtp_secure: false,
-          from_email: 'noreply@upsamail.edu.gh',
-          from_name: 'TPG Support System'
-        },
-        security: {
-          password_min_length: 8,
-          password_require_special_chars: true,
-          password_require_numbers: true,
-          password_require_uppercase: true,
-          max_login_attempts: 5,
-          lockout_duration: 30, // minutes
-          two_factor_auth_enabled: false,
-          session_security: 'high'
-        },
-        notifications: {
-          email_notifications_enabled: true,
-          sms_notifications_enabled: false,
-          push_notifications_enabled: false,
-          notification_frequency: 'immediate',
-          digest_emails: true,
-          digest_frequency: 'daily'
-        },
-        ticket_system: {
-          auto_assignment_enabled: true,
-          sla_response_time: 4, // hours
-          sla_resolution_time: 24, // hours
-          escalation_enabled: true,
-          escalation_time: 8, // hours
-          satisfaction_surveys_enabled: true,
-          allow_public_tickets: false
-        },
-        integrations: {
-          recaptcha_enabled: true,
-          recaptcha_site_key: process.env.RECAPTCHA_SITE_KEY || '',
-          google_analytics_enabled: false,
-          slack_integration_enabled: false,
-          webhooks_enabled: false
-        }
-      };
-
-      res.json({
-        success: true,
-        settings,
-        last_updated: new Date().toISOString(),
-        version: '1.0.0'
-      });
-    } catch (error) {
-      console.error('Get settings error:', error);
-      res.status(500).json({
-        error: 'Failed to retrieve system settings',
-        message: 'An error occurred while fetching settings'
-      });
-    }
-  }
-);
-
-// Update system settings
-router.put('/', 
-  authorize(['system.settings.manage']), 
-  async (req, res) => {
-    try {
-      const { section, settings } = req.body;
-
-      // Validate required fields
-      if (!section || !settings) {
-        return res.status(400).json({
-          error: 'Invalid request',
-          message: 'Section and settings are required'
-        });
-      }
-
-      // In a real implementation, you would:
-      // 1. Validate the settings data
-      // 2. Update the database/config files
-      // 3. Apply the changes to the running system
-      // 4. Log the configuration change
-
-      // Mock success response
-      res.json({
-        success: true,
-        message: `${section} settings updated successfully`,
-        updated_at: new Date().toISOString(),
-        updated_by: req.user.username
-      });
-    } catch (error) {
-      console.error('Update settings error:', error);
-      res.status(500).json({
-        error: 'Failed to update system settings',
-        message: 'An error occurred while updating settings'
-      });
-    }
-  }
-);
-
-// Get system status
-router.get('/status', 
-  authorize(['system.status.view']), 
-  async (req, res) => {
-    try {
-      const status = {
-        system: {
-          status: 'online',
-          uptime: process.uptime(),
-          version: '1.0.0',
-          environment: process.env.NODE_ENV || 'development',
-          last_restart: new Date().toISOString()
-        },
-        database: {
-          status: 'connected',
-          connection_pool: {
-            active: 5,
-            idle: 2,
-            total: 10
-          },
-          last_query: new Date().toISOString()
-        },
-        services: {
-          email_service: {
-            status: 'active',
-            last_sent: new Date().toISOString()
-          },
-          file_storage: {
-            status: 'active',
-            used_space: '2.5 GB',
-            available_space: '47.5 GB'
-          },
-          backup_service: {
-            status: 'active',
-            last_backup: new Date().toISOString()
-          }
-        },
-        performance: {
-          memory_usage: {
-            used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-            total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
-            unit: 'MB'
-          },
-          cpu_usage: Math.floor(Math.random() * 30) + 10, // Mock CPU usage
-          response_time: Math.floor(Math.random() * 100) + 50 // Mock response time
-        }
-      };
-
-      res.json({
-        success: true,
-        status,
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      console.error('Get system status error:', error);
-      res.status(500).json({
-        error: 'Failed to retrieve system status',
-        message: 'An error occurred while fetching status'
-      });
-    }
-  }
-);
-
-// Backup system
-router.post('/backup', 
-  authorize(['system.backup.create']), 
-  async (req, res) => {
-    try {
-      const { include_files = false, include_logs = false } = req.body;
-
-      // Mock backup process
-      const backupId = `backup_${Date.now()}`;
+      const SystemSettings = require('../../../models/SystemSettings');
+      const publicSettings = await SystemSettings.getPublicSettings();
       
       res.json({
         success: true,
-        message: 'Backup initiated successfully',
-        backup_id: backupId,
-        estimated_completion: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // 5 minutes
-        include_files,
-        include_logs
+        settings: publicSettings,
+        timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Create backup error:', error);
       res.status(500).json({
-        error: 'Failed to create backup',
-        message: 'An error occurred while initiating backup'
+        error: 'Failed to retrieve public settings',
+        message: 'An error occurred while fetching public settings'
       });
     }
   }
 );
 
-// Get backup history
-router.get('/backups', 
-  authorize(['system.backup.view']), 
+/**
+ * System status routes
+ */
+
+// GET /api/settings/status - Get system status (Admin+)
+router.get('/status', 
+  requirePermission('system.status.view'),
+  auditUserAction('view_system_status'),
+  settingsController.getSystemStatus
+);
+
+/**
+ * Settings management routes (Admin+)
+ */
+
+// GET /api/settings - Get all system settings (Admin+)
+router.get('/', 
+  requirePermission('system.settings.view'),
+  auditUserAction('view_settings'),
+  settingsController.getSettings
+);
+
+// GET /api/settings/:key - Get specific setting (Admin+)
+router.get('/:key',
+  requirePermission('system.settings.view'),
+  auditUserAction('view_setting'),
+  settingsController.getSetting
+);
+
+// POST /api/settings - Create new setting (Super Admin only)
+router.post('/',
+  requireRole('super_admin'),
+  authRateLimit, // Additional rate limiting for sensitive operations
+  auditUserAction('create_setting'),
+  settingsController.createSetting
+);
+
+// PUT /api/settings - Update multiple settings (Admin+)
+router.put('/',
+  requirePermission('system.settings.manage'),
+  authRateLimit,
+  auditUserAction('update_settings'),
+  settingsController.updateSettings
+);
+
+// DELETE /api/settings/:key - Delete setting (Super Admin only)
+router.delete('/:key',
+  requireRole('super_admin'),
+  authRateLimit,
+  auditUserAction('delete_setting'),
+  settingsController.deleteSetting
+);
+
+/**
+ * System administration routes (Super Admin only)
+ */
+
+// POST /api/settings/initialize - Initialize default settings (Super Admin only)
+router.post('/initialize',
+  requireRole('super_admin'),
+  authRateLimit,
+  auditUserAction('initialize_settings'),
+  settingsController.initializeDefaultSettings
+);
+
+// POST /api/settings/backup - Create system backup (Admin+)
+router.post('/backup',
+  requirePermission('system.backup.create'),
+  authRateLimit,
+  auditUserAction('create_backup'),
+  settingsController.createBackup
+);
+
+// GET /api/settings/backup/history - Get backup history (Admin+)
+router.get('/backup/history',
+  requirePermission('system.backup.view'),
+  auditUserAction('view_backup_history'),
   async (req, res) => {
     try {
-      // Mock backup history
+      // Mock backup history - in real implementation, this would query a backups table
       const backups = [
         {
           id: 'backup_1734697768000',
@@ -227,7 +135,8 @@ router.get('/backups',
           type: 'scheduled',
           status: 'completed',
           includes_files: true,
-          includes_logs: false
+          includes_logs: false,
+          created_by: 'system'
         },
         {
           id: 'backup_1734611368000', 
@@ -236,7 +145,8 @@ router.get('/backups',
           type: 'manual',
           status: 'completed',
           includes_files: true,
-          includes_logs: true
+          includes_logs: true,
+          created_by: req.user?.username || 'admin'
         }
       ];
 
@@ -247,7 +157,6 @@ router.get('/backups',
         total_size: '483 MB'
       });
     } catch (error) {
-      console.error('Get backups error:', error);
       res.status(500).json({
         error: 'Failed to retrieve backup history',
         message: 'An error occurred while fetching backups'
@@ -256,29 +165,41 @@ router.get('/backups',
   }
 );
 
-// Test email configuration
-router.post('/test-email', 
-  authorize(['system.settings.manage']), 
+/**
+ * Email and notification testing
+ */
+
+// POST /api/settings/test-email - Test email configuration (Admin+)
+router.post('/test-email',
+  requirePermission('system.settings.manage'),
+  authRateLimit,
+  auditUserAction('test_email'),
   async (req, res) => {
     try {
-      const { to_email, test_type = 'configuration' } = req.body;
-
-      if (!to_email) {
+      const { validateTestEmail } = require('./settings.validation');
+      const { error, value } = validateTestEmail(req.body);
+      
+      if (error) {
         return res.status(400).json({
-          error: 'Email address required',
-          message: 'Please provide a test email address'
+          error: 'Validation failed',
+          message: error.details[0].message
         });
       }
 
-      // Mock email test
+      const { to_email, test_type } = value;
+
+      // TODO: Implement actual email test using enhancedEmailService
+      // const enhancedEmailService = require('../../../services/enhancedEmailService');
+      // await enhancedEmailService.sendTestEmail(to_email, test_type);
+
       res.json({
         success: true,
         message: `Test email sent successfully to ${to_email}`,
         test_type,
-        sent_at: new Date().toISOString()
+        sent_at: new Date().toISOString(),
+        sent_by: req.user.username
       });
     } catch (error) {
-      console.error('Test email error:', error);
       res.status(500).json({
         error: 'Failed to send test email',
         message: 'An error occurred while sending test email'
@@ -287,23 +208,42 @@ router.post('/test-email',
   }
 );
 
-// Clear cache
-router.post('/clear-cache', 
-  authorize(['system.cache.clear']), 
+/**
+ * Cache management
+ */
+
+// POST /api/settings/clear-cache - Clear system cache (Admin+)
+router.post('/clear-cache',
+  requirePermission('system.cache.clear'),
+  authRateLimit,
+  auditUserAction('clear_cache'),
   async (req, res) => {
     try {
-      const { cache_type = 'all' } = req.body;
+      const { validateCacheOperation } = require('./settings.validation');
+      const { error, value } = validateCacheOperation(req.body);
+      
+      if (error) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          message: error.details[0].message
+        });
+      }
 
-      // Mock cache clearing
+      const { cache_type, force } = value;
+
+      // TODO: Implement actual cache clearing
+      // This would clear Redis cache, memory cache, etc.
+
       res.json({
         success: true,
         message: `${cache_type} cache cleared successfully`,
         cache_type,
+        force,
         cleared_at: new Date().toISOString(),
-        space_freed: '15.2 MB'
+        cleared_by: req.user.username,
+        space_freed: '15.2 MB' // Mock value
       });
     } catch (error) {
-      console.error('Clear cache error:', error);
       res.status(500).json({
         error: 'Failed to clear cache',
         message: 'An error occurred while clearing cache'
@@ -311,5 +251,167 @@ router.post('/clear-cache',
     }
   }
 );
+
+/**
+ * Maintenance mode management
+ */
+
+// POST /api/settings/maintenance - Toggle maintenance mode (Super Admin only)
+router.post('/maintenance',
+  requireRole('super_admin'),
+  authRateLimit,
+  auditUserAction('toggle_maintenance'),
+  async (req, res) => {
+    try {
+      const { validateMaintenanceMode } = require('./settings.validation');
+      const { error, value } = validateMaintenanceMode(req.body);
+      
+      if (error) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          message: error.details[0].message
+        });
+      }
+
+      const { enabled, message, estimated_duration, allowed_ips } = value;
+
+      // TODO: Update maintenance_mode setting in database
+      const SystemSettings = require('../../../models/SystemSettings');
+      await SystemSettings.updateValue('maintenance_mode', enabled);
+      
+      if (enabled) {
+        await SystemSettings.updateValue('maintenance_message', message);
+        if (estimated_duration) {
+          await SystemSettings.updateValue('maintenance_duration', estimated_duration);
+        }
+        if (allowed_ips && allowed_ips.length > 0) {
+          await SystemSettings.updateValue('maintenance_allowed_ips', JSON.stringify(allowed_ips));
+        }
+      }
+
+      res.json({
+        success: true,
+        message: `Maintenance mode ${enabled ? 'enabled' : 'disabled'} successfully`,
+        maintenance_enabled: enabled,
+        maintenance_message: message,
+        estimated_duration,
+        allowed_ips,
+        updated_by: req.user.username,
+        updated_at: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to toggle maintenance mode',
+        message: 'An error occurred while updating maintenance mode'
+      });
+    }
+  }
+);
+
+/**
+ * Import/Export functionality
+ */
+
+// GET /api/settings/export - Export all settings (Super Admin only)
+router.get('/export',
+  requireRole('super_admin'),
+  auditUserAction('export_settings'),
+  async (req, res) => {
+    try {
+      const SystemSettings = require('../../../models/SystemSettings');
+      const exportData = await SystemSettings.exportSettings();
+      
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="tpg-settings-${Date.now()}.json"`);
+      res.json(exportData);
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to export settings',
+        message: 'An error occurred while exporting settings'
+      });
+    }
+  }
+);
+
+// POST /api/settings/import - Import settings (Super Admin only)
+router.post('/import',
+  requireRole('super_admin'),
+  authRateLimit,
+  auditUserAction('import_settings'),
+  async (req, res) => {
+    try {
+      const { validateSettingsImport } = require('./settings.validation');
+      const { error, value } = validateSettingsImport(req.body);
+      
+      if (error) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          message: error.details[0].message,
+          details: error.details
+        });
+      }
+
+      const { settings, options } = value;
+      
+      const SystemSettings = require('../../../models/SystemSettings');
+      const result = await SystemSettings.importSettings(settings, options);
+      
+      res.json({
+        success: true,
+        message: 'Settings import completed',
+        imported_by: req.user.username,
+        imported_at: new Date().toISOString(),
+        ...result
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to import settings',
+        message: 'An error occurred while importing settings'
+      });
+    }
+  }
+);
+
+/**
+ * Route-specific error handling middleware
+ */
+router.use((error, req, res, next) => {
+  // Log settings-specific errors
+  req.logger?.error('Settings API Error:', {
+    error: error.message,
+    stack: error.stack,
+    user_id: req.user?.id,
+    route: req.route?.path,
+    method: req.method
+  });
+
+  // Handle specific validation errors
+  if (error.name === 'ValidationError') {
+    return res.status(400).json({
+      error: 'Validation Error',
+      message: error.message,
+      details: error.details
+    });
+  }
+
+  // Handle permission errors
+  if (error.message?.includes('permission')) {
+    return res.status(403).json({
+      error: 'Access Denied',
+      message: 'You do not have permission to perform this action'
+    });
+  }
+
+  // Handle setting not found errors
+  if (error.message?.includes('not found')) {
+    return res.status(404).json({
+      error: 'Setting Not Found',
+      message: 'The requested setting does not exist'
+    });
+  }
+
+  // Pass to global error handler
+  next(error);
+});
 
 module.exports = router;

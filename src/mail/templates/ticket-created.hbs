@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Support Ticket Created - {{ticket.ticket_number}}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #374151;
+            margin: 0;
+            padding: 0;
+            background-color: #f9fafb;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #2563eb;
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 32px 24px;
+        }
+        .ticket-info {
+            background-color: #f8fafc;
+            border-left: 3px solid #2563eb;
+            padding: 16px;
+            margin: 20px 0;
+        }
+        .ticket-info h3 {
+            margin: 0 0 8px 0;
+            color: #1f2937;
+            font-size: 16px;
+        }
+        .ticket-info p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .detail-item {
+            padding: 12px;
+            background-color: #f9fafb;
+            border-radius: 4px;
+        }
+        .detail-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .detail-value {
+            font-size: 14px;
+            color: #1f2937;
+            font-weight: 500;
+        }
+        .priority-high { color: #dc2626; }
+        .priority-medium { color: #d97706; }
+        .priority-low { color: #059669; }
+        .action-button {
+            display: inline-block;
+            background-color: #2563eb;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 16px 0;
+            text-align: center;
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 16px 24px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .description {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 16px;
+            margin: 16px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        @media (max-width: 600px) {
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎫 New Support Ticket</h1>
+            <p>{{ticket.ticket_number}}</p>
+        </div>
+        
+        <div class="content">
+            <div class="ticket-info">
+                <h3>{{ticket.subject}}</h3>
+                <p>A new support ticket has been created by {{ticket.user.username}}</p>
+            </div>
+            
+            <div class="details-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Ticket ID</div>
+                    <div class="detail-value">{{ticket.ticket_number}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Category</div>
+                    <div class="detail-value">{{ticket.category}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Priority</div>
+                    <div class="detail-value priority-{{ticket.priority}}">{{ticket.priority}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Status</div>
+                    <div class="detail-value">{{ticket.status}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Created by</div>
+                    <div class="detail-value">{{ticket.user.username}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Created</div>
+                    <div class="detail-value">{{ticket.created_at}}</div>
+                </div>
+            </div>
+            
+            {{#if ticket.description}}
+            <div class="description">
+                <strong>Description:</strong><br>
+                {{ticket.description}}
+            </div>
+            {{/if}}
+            
+            <div style="text-align: center; margin: 24px 0;">
+                <a href="{{ticketUrl}}" class="action-button">View Ticket</a>
+            </div>
+            
+            {{#if isAdminNotification}}
+            <p><strong>Next Steps:</strong> Please review this ticket and assign it to the appropriate team member if needed.</p>
+            {{else}}
+            <p><strong>What's Next:</strong> Our support team will review your ticket and respond within our standard timeframe based on the priority level.</p>
+            {{/if}}
+        </div>
+        
+        <div class="footer">
+            <p>TPG Support System • {{timestamp}}</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -323,6 +323,12 @@ router.post('/templates',
   ticketsController.createTicketTemplate
 );
 
+router.put('/:id/resolve',
+  requireTicketAccess('edit'),
+  auditUserAction('resolve'),
+  ticketsController.resolveTicket
+);
+
 /**
  * Health and Status Routes
  */
