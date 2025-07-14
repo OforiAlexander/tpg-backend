@@ -1,9 +1,9 @@
 // tickets.controller.js - Production-Ready getTicketStats Method
 
-const Ticket = require('../../../models/Tickets');
-const TicketComment = require('../../../models/TicketComment');
-const User = require('../../../models/User');
-const logger = require('../../../config/logger');
+const Ticket = require('./src/models/Tickets');
+const TicketComment = require('./src/models/TicketComment');
+const User = require('./src/models/User');
+const logger = require('./src/config/logger');
 const { transaction } = require('objection');
 const Redis = require('ioredis');
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');

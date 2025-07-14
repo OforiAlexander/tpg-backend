@@ -301,24 +301,8 @@ async login(req, res) {
       last_user_agent: userAgent
     });
 
-    // Generate JWT tokens - THIS WAS THE MISSING PIECE!
-    const tokenData = { 
-      id: user.id, 
-      email: user.email, 
-      role: user.role,
-      status: user.status
-    };
-    
-    const accessToken = jwt.sign(tokenData, process.env.JWT_SECRET, { 
-      expiresIn: process.env.JWT_EXPIRES_IN || '24h' 
-    });
-    
-    const refreshToken = jwt.sign(tokenData, process.env.JWT_REFRESH_SECRET, { 
-      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' 
-    });
-
-    // Store refresh token (commented out until column exists)
-    // await user.$query().patch({ refresh_token: refreshToken });
+    // 🎯 FIX: Use authService to generate tokens with proper audience/issuer
+    const tokens = authService.generateTokens(user);
 
     // Log successful login
     if (logger.security && logger.security.logSecurityEvent) {
@@ -331,7 +315,7 @@ async login(req, res) {
       );
     }
 
-    // THIS IS THE CRITICAL RESPONSE THAT WAS MISSING
+    // Return successful response
     res.json({
       success: true,
       message: 'Login successful',
@@ -345,9 +329,9 @@ async login(req, res) {
         tpg_license_number: user.tpg_license_number
       },
       tokens: {
-        accessToken,
-        refreshToken,
-        expiresIn: process.env.JWT_EXPIRES_IN || '24h'
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        expiresIn: tokens.expiresIn
       }
     });
 
@@ -365,36 +349,66 @@ async login(req, res) {
    * Refresh access token
    * POST /api/auth/refresh
    */
-  async refresh(req, res) {
-    try {
-      const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
-      
-      if (!refreshToken) {
-        return res.status(401).json({
-          error: 'Refresh token required',
-          message: 'No refresh token provided'
-        });
-      }
-
-      const result = await authService.refreshAccessToken(refreshToken);
-
-      res.json({
-        success: true,
-        token: result.accessToken,
-        expiresIn: result.expiresIn
-      });
-    } catch (error) {
-      logger.error('Token refresh error:', error);
-      
-      // Clear invalid refresh token cookie
-      res.clearCookie('refreshToken');
-      
-      res.status(401).json({
-        error: 'Token refresh failed',
-        message: 'Invalid or expired refresh token'
+async refresh(req, res) {
+  try {
+    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+    
+    if (!refreshToken) {
+      return res.status(401).json({
+        error: 'Refresh token required',
+        message: 'No refresh token provided'
       });
     }
+
+    //  DEBUG: Log the incoming token
+    console.log(' Refresh Token Debug:');
+    console.log('Token source:', req.cookies.refreshToken ? 'cookies' : 'body');
+    console.log('Token (first 50 chars):', refreshToken.substring(0, 50));
+    
+    //  DEBUG: Decode token before verification
+    const decoded = jwt.decode(refreshToken, { complete: true });
+    console.log('Decoded token header:', JSON.stringify(decoded?.header, null, 2));
+    console.log('Decoded token payload:', JSON.stringify(decoded?.payload, null, 2));
+    
+    // Check if token has expected claims
+    if (!decoded?.payload?.aud || !decoded?.payload?.iss) {
+      console.log(' Token missing audience or issuer claims');
+      return res.status(401).json({
+        error: 'Invalid token format',
+        message: 'Token missing required claims'
+      });
+    }
+    
+    if (decoded.payload.aud !== 'tpg-users' || decoded.payload.iss !== 'tpg-portal') {
+      console.log(' Token has wrong audience/issuer:');
+      console.log('Expected: aud=tpg-users, iss=tpg-portal');
+      console.log('Actual: aud=' + decoded.payload.aud + ', iss=' + decoded.payload.iss);
+      return res.status(401).json({
+        error: 'Invalid token claims',
+        message: 'Token has invalid audience or issuer'
+      });
+    }
+
+    const result = await authService.refreshAccessToken(refreshToken);
+
+    res.json({
+      success: true,
+      token: result.accessToken,
+      expiresIn: result.expiresIn
+    });
+  } catch (error) {
+    console.log(' Refresh error:', error.message);
+    logger.error('Token refresh error:', error);
+    
+    // Clear invalid refresh token cookie
+    res.clearCookie('refreshToken');
+    
+    res.status(401).json({
+      error: 'Token refresh failed',
+      message: 'Invalid or expired refresh token'
+    });
   }
+}
 
   /**
    * User logout

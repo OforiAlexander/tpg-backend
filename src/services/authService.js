@@ -57,9 +57,20 @@ class AuthService {
    * Generate both access and refresh tokens
    */
   generateTokens(user) {
+    const accessToken = this.generateAccessToken(user);
+    const refreshToken = this.generateRefreshToken(user);
+    
+    // 🔍 DEBUG: Decode tokens to verify claims
+    const decodedRefresh = jwt.decode(refreshToken, { complete: true });
+    const decodedAccess = jwt.decode(accessToken, { complete: true });
+    
+    console.log('🔍 Generated Token Debug:');
+    console.log('Access Token Claims:', JSON.stringify(decodedAccess.payload, null, 2));
+    console.log('Refresh Token Claims:', JSON.stringify(decodedRefresh.payload, null, 2));
+    
     return {
-      accessToken: this.generateAccessToken(user),
-      refreshToken: this.generateRefreshToken(user),
+      accessToken,
+      refreshToken,
       expiresIn: this.jwtExpiresIn
     };
   }
@@ -97,6 +108,9 @@ class AuthService {
         issuer: 'tpg-portal',
         audience: 'tpg-users'
       });
+
+      const decodedRaw = jwt.decode(token, { complete: true });
+console.log('Decoded refresh token:', JSON.stringify(decodedRaw, null, 2));
 
       if (decoded.type !== 'refresh') {
         throw new Error('Invalid token type');

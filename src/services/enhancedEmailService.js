@@ -106,7 +106,7 @@ class EnhancedEmailService {
         ...data,
         frontendUrl: process.env.FRONTEND_URL,
         supportEmail: process.env.SUPPORT_EMAIL || 'support@upsamail.edu.gh',
-        companyName: 'Traditional and Complementary Medicine Practice Council',
+        companyName: 'Univerisity of Professional Studies, Accra',
         year: new Date().getFullYear(),
         timestamp: new Date().toLocaleString('en-GH', { 
           timeZone: 'GMT',
@@ -146,7 +146,7 @@ class EnhancedEmailService {
   async sendWelcomeEmail(user, verificationToken) {
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
     
-    return await this.sendTemplatedEmail('welcome', user.email, 'Welcome to TPG State Portal', {
+    return await this.sendTemplatedEmail('welcome', user.email, 'Welcome to UPSA State Portal', {
       user,
       verificationUrl,
       verificationToken
