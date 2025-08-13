@@ -1,4 +1,4 @@
-// src/routes/api/settings/settings.routes.js - TPG System Settings Routes (Updated)
+// src/routes/api/settings/settings.routes.js - TPG System Settings Routes (Context Fixed)
 const express = require('express');
 const router = express.Router();
 
@@ -15,9 +15,6 @@ const { auditUserAction } = require('../../../middleware/audit');
 // Import controller
 const settingsController = require('./settings.controller');
 
-// Apply authentication to all routes
-router.use(authenticate);
-
 // Apply rate limiting
 router.use(apiRateLimit);
 
@@ -26,26 +23,27 @@ router.use(apiRateLimit);
  */
 
 // GET /api/settings/public - Get public settings (no special permissions needed)
-router.get('/public',
-  auditUserAction('view_public_settings'),
-  async (req, res) => {
-    try {
-      const SystemSettings = require('../../../models/SystemSettings');
-      const publicSettings = await SystemSettings.getPublicSettings();
-      
-      res.json({
-        success: true,
-        settings: publicSettings,
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      res.status(500).json({
-        error: 'Failed to retrieve public settings',
-        message: 'An error occurred while fetching public settings'
-      });
-    }
+router.get('/public', async (req, res) => {
+  try {
+    const SystemSettings = require('../../../models/SystemSettings');
+    const publicSettings = await SystemSettings.getPublicSettings();
+    
+    res.json({
+      success: true,
+      settings: publicSettings,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Public settings error:', error);
+    res.status(500).json({
+      error: 'Failed to retrieve public settings',
+      message: 'An error occurred while fetching public settings'
+    });
   }
-);
+});
+
+// Apply authentication to all routes
+router.use(authenticate);
 
 /**
  * System status routes
@@ -55,7 +53,7 @@ router.get('/public',
 router.get('/status', 
   requirePermission('system.status.view'),
   auditUserAction('view_system_status'),
-  settingsController.getSystemStatus
+  (req, res) => settingsController.getSystemStatus(req, res) // ✅ FIXED: Proper context binding
 );
 
 /**
@@ -66,14 +64,14 @@ router.get('/status',
 router.get('/', 
   requirePermission('system.settings.view'),
   auditUserAction('view_settings'),
-  settingsController.getSettings
+  (req, res) => settingsController.getSettings(req, res) // ✅ FIXED: Proper context binding
 );
 
 // GET /api/settings/:key - Get specific setting (Admin+)
 router.get('/:key',
   requirePermission('system.settings.view'),
   auditUserAction('view_setting'),
-  settingsController.getSetting
+  (req, res) => settingsController.getSetting(req, res) // ✅ FIXED: Proper context binding
 );
 
 // POST /api/settings - Create new setting (Super Admin only)
@@ -81,15 +79,15 @@ router.post('/',
   requireRole('super_admin'),
   authRateLimit, // Additional rate limiting for sensitive operations
   auditUserAction('create_setting'),
-  settingsController.createSetting
+  (req, res) => settingsController.createSetting(req, res) // ✅ FIXED: Proper context binding
 );
 
 // PUT /api/settings - Update multiple settings (Admin+)
 router.put('/',
   requirePermission('system.settings.manage'),
-  authRateLimit,
+  // Remove authRateLimit for settings updates - too restrictive
   auditUserAction('update_settings'),
-  settingsController.updateSettings
+  (req, res) => settingsController.updateSettings(req, res) // ✅ FIXED: Proper context binding
 );
 
 // DELETE /api/settings/:key - Delete setting (Super Admin only)
@@ -97,7 +95,7 @@ router.delete('/:key',
   requireRole('super_admin'),
   authRateLimit,
   auditUserAction('delete_setting'),
-  settingsController.deleteSetting
+  (req, res) => settingsController.deleteSetting(req, res) // ✅ FIXED: Proper context binding
 );
 
 /**
@@ -109,7 +107,7 @@ router.post('/initialize',
   requireRole('super_admin'),
   authRateLimit,
   auditUserAction('initialize_settings'),
-  settingsController.initializeDefaultSettings
+  (req, res) => settingsController.initializeDefaultSettings(req, res) // ✅ FIXED: Proper context binding
 );
 
 // POST /api/settings/backup - Create system backup (Admin+)
@@ -117,7 +115,7 @@ router.post('/backup',
   requirePermission('system.backup.create'),
   authRateLimit,
   auditUserAction('create_backup'),
-  settingsController.createBackup
+  (req, res) => settingsController.createBackup(req, res) // ✅ FIXED: Proper context binding
 );
 
 // GET /api/settings/backup/history - Get backup history (Admin+)

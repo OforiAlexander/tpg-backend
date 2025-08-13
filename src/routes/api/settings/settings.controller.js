@@ -354,6 +354,9 @@ class SettingsController {
    */
   async getSystemStatus(req, res) {
     try {
+      // Get disk usage before creating the status object to preserve 'this' context
+      const diskUsage = await this.getDiskUsage();
+      
       const status = {
         system: {
           status: 'online',
@@ -394,7 +397,7 @@ class SettingsController {
             load_average: os.loadavg(),
             cpu_count: os.cpus().length
           },
-          disk_usage: await this.getDiskUsage()
+          disk_usage: diskUsage // ✅ FIXED: Use the pre-fetched value
         },
         security: {
           https_enabled: process.env.COOKIE_SECURE === 'true',
@@ -445,9 +448,10 @@ class SettingsController {
       const defaultSettings = [
         // System Settings
         { key: 'site_name', value: 'TPG State Portal', description: 'Application name', type: 'string', category: 'system', is_public: true, sort_order: 1 },
-        { key: 'site_description', value: 'Teacher Portal Ghana Support System', description: 'Application description', type: 'string', category: 'system', is_public: true, sort_order: 2 },
+        { key: 'site_description', value: 'SMS - Support System Support System', description: 'Application description', type: 'string', category: 'system', is_public: true, sort_order: 2 },
         { key: 'maintenance_mode', value: 'false', description: 'Enable maintenance mode', type: 'boolean', category: 'system', is_public: true, sort_order: 3 },
         { key: 'registration_enabled', value: 'true', description: 'Allow new user registration', type: 'boolean', category: 'system', is_public: true, sort_order: 4 },
+        { key: 'email_verification_required', value: 'false', description: 'Require email verification for new accounts', type: 'boolean', category: 'system', is_public: true, sort_order: 5 },
         
         // Email Settings
         { key: 'email_notifications_enabled', value: 'true', description: 'Enable email notifications', type: 'boolean', category: 'email', sort_order: 1 },
@@ -465,13 +469,16 @@ class SettingsController {
         { key: 'sla_response_time', value: '4', description: 'SLA response time (hours)', type: 'number', category: 'tickets', is_public: true, sort_order: 2 },
         { key: 'sla_resolution_time', value: '24', description: 'SLA resolution time (hours)', type: 'number', category: 'tickets', is_public: true, sort_order: 3 },
         { key: 'satisfaction_surveys_enabled', value: 'true', description: 'Enable satisfaction surveys', type: 'boolean', category: 'tickets', sort_order: 4 },
+        { key: 'auto_escalation_enabled', value: 'true', description: 'Enable automatic ticket escalation', type: 'boolean', category: 'tickets', sort_order: 5 },
+        { key: 'escalation_time_hours', value: '8', description: 'Escalation time in hours', type: 'number', category: 'tickets', sort_order: 6 },
+        { key: 'allow_non_registered_tickets', value: 'false', description: 'Allow tickets from non-registered users', type: 'boolean', category: 'tickets', sort_order: 7 },
         
         // File Upload Settings
         { key: 'max_file_upload_size', value: '10485760', description: 'Maximum file upload size (bytes)', type: 'number', category: 'files', sort_order: 1 },
         { key: 'allowed_file_types', value: JSON.stringify(['.jpg', '.jpeg', '.png', '.pdf', '.doc', '.docx', '.txt']), description: 'Allowed file extensions', type: 'json', category: 'files', sort_order: 2 },
         
         // Organization Settings
-        { key: 'org_name', value: process.env.ORG_NAME || 'Teacher Portal Ghana', description: 'Organization name', type: 'string', category: 'organization', is_public: true, sort_order: 1 },
+        { key: 'org_name', value: process.env.ORG_NAME || 'SMS - Support System', description: 'Organization name', type: 'string', category: 'organization', is_public: true, sort_order: 1 },
         { key: 'org_email', value: process.env.ORG_EMAIL || 'info@tpg.gov.gh', description: 'Organization email', type: 'string', category: 'organization', is_public: true, sort_order: 2 },
         { key: 'org_phone', value: process.env.ORG_PHONE || '+233 50 123 9711', description: 'Organization phone', type: 'string', category: 'organization', is_public: true, sort_order: 3 },
         { key: 'org_address', value: process.env.ORG_ADDRESS || 'Accra, Ghana', description: 'Organization address', type: 'string', category: 'organization', is_public: true, sort_order: 4 }
@@ -623,20 +630,29 @@ class SettingsController {
 
   /**
    * Get disk usage information
+   * Enhanced with better error handling
    */
   async getDiskUsage() {
     try {
+      // This is a simplified implementation
+      // In production, you might want to use a library like 'diskusage' or 'node-df'
       const stats = await fs.stat(process.cwd());
+      
+      // For a more accurate disk usage, you could use platform-specific commands
+      // or external libraries. For now, return mock data with proper structure
       return {
-        available: 'N/A', // Would need platform-specific implementation
+        available: 'N/A',
         used: 'N/A',
-        total: 'N/A'
+        total: 'N/A',
+        unit: 'GB'
       };
-    } catch {
+    } catch (error) {
+      logger.warn('Could not get disk usage:', error);
       return {
         available: 'Unknown',
         used: 'Unknown',
-        total: 'Unknown'
+        total: 'Unknown',
+        unit: 'GB'
       };
     }
   }

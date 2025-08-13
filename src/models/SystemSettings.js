@@ -325,7 +325,7 @@ class SystemSettings extends Model {
     const defaultSettings = [
       // System Settings
       { key: 'site_name', value: 'TPG State Portal', description: 'Application name', type: 'string', category: 'system', is_public: true, sort_order: 1 },
-      { key: 'site_description', value: 'Teacher Portal Ghana Support System', description: 'Application description', type: 'string', category: 'system', is_public: true, sort_order: 2 },
+      { key: 'site_description', value: 'SMS - Support System Support System', description: 'Application description', type: 'string', category: 'system', is_public: true, sort_order: 2 },
       { key: 'maintenance_mode', value: 'false', description: 'Enable maintenance mode', type: 'boolean', category: 'system', is_public: true, sort_order: 3 },
       
       // Email Settings

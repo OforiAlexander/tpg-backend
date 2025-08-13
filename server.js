@@ -1,4 +1,4 @@
-// server.js - TPG State Ticketing System Backend (FIXED - Proper Middleware Order)
+// server.js -  State Ticketing System Backend (FIXED - Proper Middleware Order)
 require('dotenv').config();
 
 const express = require('express');
@@ -19,6 +19,7 @@ const authRoutes = require('./src/routes/api/auth/auth.routes');
 const ticketRoutes = require('./src/routes/api/tickets/tickets.routes');
 const userRoutes = require('./src/routes/api/users/users.routes');
 const analyticsRoutes = require('./src/routes/api/analytics/analytics.routes');
+const settingsRoutes = require('./src/routes/api/settings/settings.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -33,9 +34,9 @@ if (DEBUG_MODE) {
     const startTime = Date.now();
     
     console.log('\n' + '='.repeat(80));
-    console.log(`🔍 [${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
-    console.log(`🌐 IP: ${req.ip} | User-Agent: ${req.get('User-Agent')?.substring(0, 50)}...`);
-    console.log(`📝 Headers:`, {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+    console.log(`IP: ${req.ip} | User-Agent: ${req.get('User-Agent')?.substring(0, 50)}...`);
+    console.log(`Headers:`, {
       authorization: req.headers.authorization ? req.headers.authorization.substring(0, 20) + '...' : 'none',
       'content-type': req.headers['content-type'],
       origin: req.headers.origin
@@ -43,7 +44,7 @@ if (DEBUG_MODE) {
     
     res.on('finish', () => {
       const duration = Date.now() - startTime;
-      console.log(`✅ Response: ${res.statusCode} | Duration: ${duration}ms | User: ${req.user?.id || 'none'}`);
+      console.log(`Response: ${res.statusCode} | Duration: ${duration}ms | User: ${req.user?.id || 'none'}`);
       console.log('='.repeat(80));
     });
     
@@ -150,7 +151,7 @@ app.get('/health', (req, res) => {
     uptime: Math.floor(process.uptime()),
     environment: process.env.NODE_ENV || 'development',
     version: '1.0.0',
-    service: 'TPG State Ticketing System API',
+    service: ' State Ticketing System API',
     database: 'connected', // This could be enhanced with actual DB health check
     memory: {
       used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + 'MB',
@@ -162,7 +163,7 @@ app.get('/health', (req, res) => {
 // API Documentation endpoint
 app.get('/api', (req, res) => {
   res.json({
-    name: 'TPG State Ticketing System API',
+    name: ' State Ticketing System API',
     version: '1.0.0',
     description: 'The Pharmacy Guild of Ghana - Support Portal API',
     documentation: {
@@ -216,12 +217,33 @@ app.get('/api', (req, res) => {
           'GET /api/analytics/tickets',
           'GET /api/analytics/users'
         ]
+      },
+      settings: {
+        base: '/api/settings',
+        description: 'System configuration and settings management',
+        routes: [
+          'GET /api/settings/public',
+          'GET /api/settings/status',
+          'GET /api/settings',
+          'GET /api/settings/:key',
+          'POST /api/settings',
+          'PUT /api/settings',
+          'DELETE /api/settings/:key',
+          'POST /api/settings/initialize',
+          'POST /api/settings/backup',
+          'GET /api/settings/backup/history',
+          'POST /api/settings/test-email',
+          'POST /api/settings/clear-cache',
+          'POST /api/settings/maintenance',
+          'GET /api/settings/export',
+          'POST /api/settings/import'
+        ]
       }
     },
     contact: {
-      support: process.env.ORG_EMAIL || 'support@upsamail.edu.gh',
-      phone: process.env.ORG_PHONE || '+233 XX XXX XXXX',
-      website: process.env.ORG_WEBSITE || 'https://ntc.gov.gh'
+      support: process.env.ORG_EMAIL || '10303398@upsamail.edu.gh',
+      phone: process.env.ORG_PHONE || '+233 50 961 5356',
+      website: process.env.ORG_WEBSITE || 'https://upsa.com'
     },
     security: {
       authentication: 'JWT Bearer Token',
@@ -294,12 +316,14 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/tickets', ticketRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
+app.use('/api/v1/settings', settingsRoutes);
 
 // Default API routes (latest version)
 app.use('/api/auth', authRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // =============================================================================
 // PROTECTED SYSTEM ENDPOINTS
@@ -611,37 +635,37 @@ process.on('uncaughtException', (error) => {
 // Start server
 async function startServer() {
   try {
-    logger.info('🔄 Starting TPG Backend Server...');
+    logger.info('Starting TPG Backend Server...');
     logger.info('Connecting to the database...');
     await connectDatabase();
-    logger.info('✅ Database connected successfully');
+    logger.info('Database connected successfully');
 
     // Ensure upload directories exist
     const fs = require('fs');
     const uploadPath = process.env.UPLOAD_PATH || './uploads';
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
-      logger.info(`📁 Created upload directory: ${uploadPath}`);
+      logger.info(`Created upload directory: ${uploadPath}`);
     }
 
     // Start Express server
     const server = app.listen(PORT, () => {
-      logger.info('🚀 TPG Backend Server started successfully');
-      logger.info(`🌐 Server running on port ${PORT}`);
-      logger.info(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
-      logger.info(`🔗 API Base URL: http://localhost:${PORT}/api`);
-      logger.info(`🏥 Health Check: http://localhost:${PORT}/health`);
-      logger.info(`📊 System Status: http://localhost:${PORT}/status`);
+      logger.info('TPG Backend Server started successfully');
+      logger.info(`Server running on port ${PORT}`);
+      logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      logger.info(`API Base URL: http://localhost:${PORT}/api`);
+      logger.info(`Health Check: http://localhost:${PORT}/health`);
+      logger.info(`System Status: http://localhost:${PORT}/status`);
       
       if (DEBUG_MODE) {
-        logger.info(`🐛 Debug mode enabled`);
-        logger.info(`📚 API Documentation: http://localhost:${PORT}/api`);
-        logger.info(`🔍 API Endpoints: http://localhost:${PORT}/api/docs/endpoints`);
-        logger.info(`⚙️ Middleware Debug: http://localhost:${PORT}/api/debug/middleware`);
+        logger.info(`Debug mode enabled`);
+        logger.info(`API Documentation: http://localhost:${PORT}/api`);
+        logger.info(`API Endpoints: http://localhost:${PORT}/api/docs/endpoints`);
+        logger.info(`Middleware Debug: http://localhost:${PORT}/api/debug/middleware`);
       }
 
       // Log security configuration
-      logger.info('🔒 Security features enabled:');
+      logger.info('Security features enabled:');
       logger.info('  • JWT Authentication');
       logger.info('  • Rate Limiting');
       logger.info('  • CORS Protection');
@@ -659,7 +683,7 @@ async function startServer() {
     return server;
 
   } catch (error) {
-    logger.error('❌ Failed to start server:', error);
+    logger.error('Failed to start server:', error);
     process.exit(1);
   }
 }

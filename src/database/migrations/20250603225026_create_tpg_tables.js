@@ -1,5 +1,5 @@
 // src/database/migrations/001_create_tpg_tables.js
-// Initial TPG State Ticketing System Database Schema
+// Initial  State Ticketing System Database Schema
 
 exports.up = function(knex) {
   return knex.schema

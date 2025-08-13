@@ -1,7 +1,7 @@
 {
   "name": "tpg-backend",
   "version": "1.0.0",
-  "description": "TPG State Ticketing System - Backend API",
+  "description": " State Ticketing System - Backend API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

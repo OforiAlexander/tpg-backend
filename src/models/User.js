@@ -432,13 +432,18 @@ class User extends Model {
         'users.view',
         'users.edit',
         'users.approve',
-        'analytics.view'
+        'analytics.view',
+        'system.status.view',
+        'system.settings.view',
+        'system.settings.manage',
+        'system.backup.view',
+        'system.cache.clear'
       ],
       super_admin: [
         'tickets.*',
         'users.*',
         'analytics.*',
-        'system.admin',
+        'system.*', 
         'categories.manage'
       ]
     };
